@@ -1,0 +1,30 @@
+# Logs
+logs
+*.log
+
+# Build output
+TriangleService/target/
+TriangleServiceTests/target/
+TriangleServiceTests/test-output/
+
+
+# Playwright test artifacts
+allure-results/
+ctrf/
+playwright-report/
+test-results/
+report/
+screenshots/
+videos/
+trace.zip
+
+
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

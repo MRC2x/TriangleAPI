@@ -1,0 +1,38 @@
+services:
+  triangle-service:
+    build:
+      context: ./triangle-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - triangle-network
+
+  triangle-api-tests:
+    build:
+      context: .
+      dockerfile: ./triangle-api-tests/Dockerfile
+    depends_on:
+      triangle-service:
+        condition: service_healthy
+    environment:
+      - BASE_URL=http://triangle-service:8080
+    volumes:
+      - ./triangle-api-tests/test-output:/app/test-output
+    networks:
+      - triangle-network
+    profiles:
+      - test
+
+networks:
+  triangle-network:
+    driver: bridge
+
+volumes:
+  test-results:

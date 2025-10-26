@@ -3,66 +3,52 @@
 echo "Testing Triangle API Service"
 echo "============================"
 
+# Check if we should run tests locally or in Docker
+RUN_MODE=${1:-"local"}
 BASE_URL=${BASE_URL:-"http://localhost:8080"}
-TOKEN="9ea8c6a6-73f5-4ea1-8ec8-f8a3b00a2564"
 
-echo "Base URL: $BASE_URL"
-echo ""
-
-# Test 1: Health check
-echo "1. Testing health endpoint..."
-curl -s "$BASE_URL/actuator/health" | jq '.' 2>/dev/null || curl -s "$BASE_URL/actuator/health"
-echo ""
-
-# Test 2: Create triangle
-echo "2. Creating a triangle..."
-RESPONSE=$(curl -s -X POST "$BASE_URL/triangle/" \
-  -H "Content-Type: application/json" \
-  -H "X-User: $TOKEN" \
-  -d '{"separator": ";", "input": "3;4;5"}')
-
-echo "Response: $RESPONSE"
-TRIANGLE_ID=$(echo $RESPONSE | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
-echo "Triangle ID: $TRIANGLE_ID"
-echo ""
-
-# Test 3: Get all triangles
-echo "3. Getting all triangles..."
-curl -s -X GET "$BASE_URL/triangle/all" \
-  -H "X-User: $TOKEN" | jq '.' 2>/dev/null || curl -s -X GET "$BASE_URL/triangle/all" -H "X-User: $TOKEN"
-echo ""
-
-# Test 4: Get specific triangle
-if [ ! -z "$TRIANGLE_ID" ]; then
-    echo "4. Getting triangle by ID: $TRIANGLE_ID"
-    curl -s -X GET "$BASE_URL/triangle/$TRIANGLE_ID" \
-      -H "X-User: $TOKEN" | jq '.' 2>/dev/null || curl -s -X GET "$BASE_URL/triangle/$TRIANGLE_ID" -H "X-User: $TOKEN"
-    echo ""
+if [ "$RUN_MODE" = "docker" ]; then
+    echo "Running tests in Docker..."
     
-    # Test 5: Get area
-    echo "5. Getting triangle area..."
-    curl -s -X GET "$BASE_URL/triangle/$TRIANGLE_ID/area" \
-      -H "X-User: $TOKEN" | jq '.' 2>/dev/null || curl -s -X GET "$BASE_URL/triangle/$TRIANGLE_ID/area" -H "X-User: $TOKEN"
-    echo ""
+    # Build the API tests first
+    echo "Building API tests..."
+    cd triangle-api-tests
+    mvn clean compile -q
+    cd ..
     
-    # Test 6: Get perimeter
-    echo "6. Getting triangle perimeter..."
-    curl -s -X GET "$BASE_URL/triangle/$TRIANGLE_ID/perimeter" \
-      -H "X-User: $TOKEN" | jq '.' 2>/dev/null || curl -s -X GET "$BASE_URL/triangle/$TRIANGLE_ID/perimeter" -H "X-User: $TOKEN"
-    echo ""
+    # Run tests using docker compose
+    docker compose --profile test up --build triangle-api-tests
     
-    # Test 7: Delete triangle
-    echo "7. Deleting triangle..."
-    curl -s -X DELETE "$BASE_URL/triangle/$TRIANGLE_ID" \
-      -H "X-User: $TOKEN"
-    echo " (Status: $?)"
-    echo ""
+    # Copy test results out of container if needed
+    echo "Test results are available in triangle-api-tests/test-output/"
+    
+elif [ "$RUN_MODE" = "local" ]; then
+    echo "Running tests locally..."
+    echo "Base URL: $BASE_URL"
+    
+    # Check if service is running
+    if ! curl -f "$BASE_URL/actuator/health" &> /dev/null; then
+        echo "Service is not running at $BASE_URL"
+        echo "Please start the service first with: ./run-service.sh"
+        exit 1
+    fi
+    
+    # Run Maven tests
+    cd triangle-api-tests
+    mvn clean test
+    
+    if [ $? -eq 0 ]; then
+        echo ""
+        echo "✅ All tests passed!"
+        echo "Test reports available in triangle-api-tests/test-output/"
+    else
+        echo ""
+        echo "❌ Some tests failed. Check the reports in triangle-api-tests/test-output/"
+    fi
+    
+else
+    echo "Usage: $0 [local|docker]"
+    echo "  local  - Run tests locally against running service (default)"
+    echo "  docker - Run tests in Docker container"
+    exit 1
 fi
-
-# Test 8: Test authentication
-echo "8. Testing authentication (should fail)..."
-curl -s -X GET "$BASE_URL/triangle/all" \
-  -H "X-User: invalid-token" | jq '.' 2>/dev/null || curl -s -X GET "$BASE_URL/triangle/all" -H "X-User: invalid-token"
-echo ""
-
-echo "Service test completed!" 

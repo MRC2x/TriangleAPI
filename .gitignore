@@ -3,22 +3,9 @@ logs
 *.log
 
 # Build output
-TriangleService/target/
-TriangleServiceTests/target/
-TriangleServiceTests/test-output/
-
-
-# Playwright test artifacts
-allure-results/
-ctrf/
-playwright-report/
-test-results/
-report/
-screenshots/
-videos/
-trace.zip
-
-
+/triangle-service/target/
+/triangle-api-tests/target/
+/triangle-api-tests/test-output/
 
 # IDE and editor settings
 .vscode/

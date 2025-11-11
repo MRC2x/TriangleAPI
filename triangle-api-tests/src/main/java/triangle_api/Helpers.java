@@ -241,10 +241,16 @@ public class Helpers {
         } else if (!sidesPositive) {
             Reporter.log("At least one of the specified sides is < 0, all of them must be > 0 ", true);
         } else {
-            Reporter.log("The specified sides lengths are not valid for a triangle, they must follow the criteria: " +
-                    "\n(firstSide + secondSide) > thirdSide " +
-                    "\nAND \n(firstSide + thirdSide) > secondSide " +
-                    "\nAND \n(secondSide + thirdSide) > firstSide.", true);
+            Reporter.log("""
+                    The specified sides lengths are not valid for a triangle, they must follow the criteria: \
+                    
+                    (firstSide + secondSide) > thirdSide \
+                    
+                    AND\s
+                    (firstSide + thirdSide) > secondSide \
+                    
+                    AND\s
+                    (secondSide + thirdSide) > firstSide.""", true);
         }
         throw new IllegalArgumentException();
     }
@@ -366,6 +372,5 @@ public class Helpers {
         }
         return new double[]{firstSide, secondSide, thirdSide};
     }
-
 
 }

@@ -3,6 +3,7 @@ package com.triangle.controller;
 import com.triangle.dto.*;
 import com.triangle.model.Triangle;
 import com.triangle.service.TriangleService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -243,33 +244,43 @@ public class TriangleController {
     }
     
     // Handle unsupported HTTP methods
+    @Operation(hidden = true)
+    @Hidden
     @RequestMapping(value = "/", method = {RequestMethod.GET, RequestMethod.PUT, RequestMethod.DELETE})
     public ResponseEntity<?> unsupportedMethods() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(new ErrorResponse("Method Not Allowed", "Request method not supported"));
     }
-    
+
+    @Operation(hidden = true)
+    @Hidden
     @RequestMapping(value = "/all", method = {RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
     public ResponseEntity<?> unsupportedMethodsForAll() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(new ErrorResponse("Method Not Allowed", "Request method not supported"));
     }
-    
+
+    @Operation(hidden = true)
+    @Hidden
     @RequestMapping(value = "/{id}", method = {RequestMethod.POST, RequestMethod.PUT})
     public ResponseEntity<?> unsupportedMethodsForId() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(new ErrorResponse("Method Not Allowed", "Request method not supported"));
     }
-    
+
+    @Operation(hidden = true)
+    @Hidden
     @RequestMapping(value = "/{id}/area", method = {RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
     public ResponseEntity<?> unsupportedMethodsForArea() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(new ErrorResponse("Method Not Allowed", "Request method not supported"));
     }
-    
+
+    @Operation(hidden = true)
+    @Hidden
     @RequestMapping(value = "/{id}/perimeter", method = {RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
     public ResponseEntity<?> unsupportedMethodsForPerimeter() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(new ErrorResponse("Method Not Allowed", "Request method not supported"));
     }
-} 
+}

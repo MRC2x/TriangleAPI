@@ -23,28 +23,8 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        
-        <!-- Dependency versions -->
-<!--        <spring-boot.version>3.5.4</spring-boot.version>-->
-<!--        <rest-assured.version>5.5.6</rest-assured.version>-->
-<!--        <testng.version>7.11.0</testng.version>-->
-<!--        <allure.version>2.29.1</allure.version>-->
-<!--        <aspectj.version>1.9.5</aspectj.version>-->
     </properties>
-   
-    
-<!--    <dependencyManagement>-->
-<!--        <dependencies>-->
-<!--            <dependency>-->
-<!--                <groupId>org.springframework.boot</groupId>-->
-<!--                <artifactId>spring-boot-dependencies</artifactId>-->
-<!--                <version>${spring-boot.version}</version>-->
-<!--                <type>pom</type>-->
-<!--                <scope>import</scope>-->
-<!--            </dependency>-->
-<!--        </dependencies>-->
-<!--    </dependencyManagement>-->
-    
+
     <build>
         <pluginManagement>
             <plugins>

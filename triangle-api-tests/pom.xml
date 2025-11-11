@@ -5,13 +5,9 @@
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-<!--    <parent>-->
-        <groupId>com.triangle.tests</groupId>
-        <artifactId>triangle-api-tests</artifactId>
-        <version>1.0.0</version>
-<!--    </parent>-->
-
-<!--    <artifactId>triangle-api-tests</artifactId>-->
+    <groupId>com.triangle.tests</groupId>
+    <artifactId>triangle-api-tests</artifactId>
+    <version>1.0.0</version>
     <name>Triangle API Tests</name>
     <description>API Tests for Triangle Service</description>
 

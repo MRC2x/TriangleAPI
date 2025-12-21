@@ -22,21 +22,21 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 public class Helpers {
+    public static String VALID_TOKEN = "9ea8c6a6-73f5-4ea1-8ec8-f8a3b00a2564";
+    public static String INVALID_TOKEN = "invalid_personal_token_value";
 
     /** This method returns a list of IDs of all existed triangles or an empty list if no any IDs were found.
      *
      * @return - list of IDs or empty list
      */
     public static List<String> getAllTriangles() {
-
         RequestSpecification helpersSpec = new RequestSpecBuilder()
-                .addHeader("X-User", "9ea8c6a6-73f5-4ea1-8ec8-f8a3b00a2564")
+                .addHeader("X-User", VALID_TOKEN)
                 .setBaseUri(baseURI)
                 .setBasePath("/triangle/")
                 .build();
 
         Response response =
-
                 given()
                         .log()
                         .ifValidationFails(LogDetail.ALL).spec(helpersSpec)
@@ -64,9 +64,8 @@ public class Helpers {
      * @return - array of double with three sides.
      */
     public static double[] getTriangle(String id) {
-
         RequestSpecification helpersSpec = new RequestSpecBuilder()
-                .addHeader("X-User", "9ea8c6a6-73f5-4ea1-8ec8-f8a3b00a2564")
+                .addHeader("X-User", VALID_TOKEN)
                 .setBaseUri(baseURI)
                 .setBasePath("/triangle/")
                 .build();
@@ -104,7 +103,7 @@ public class Helpers {
     public static void deleteAllTriangles(List<String> listOfIDs ) {
 
         RequestSpecification helpersSpec = new RequestSpecBuilder()
-                .addHeader("X-User", "9ea8c6a6-73f5-4ea1-8ec8-f8a3b00a2564")
+                .addHeader("X-User", VALID_TOKEN)
                 .setBaseUri(baseURI)
                 .setBasePath("/triangle/")
                 .build();
@@ -144,7 +143,7 @@ public class Helpers {
     public static void deleteOneTriangle(String id) {
 
         RequestSpecification helpersSpec = new RequestSpecBuilder()
-                .addHeader("X-User", "9ea8c6a6-73f5-4ea1-8ec8-f8a3b00a2564")
+                .addHeader("X-User", VALID_TOKEN)
                 .setBaseUri(baseURI)
                 .setBasePath("/triangle/")
                 .build();
@@ -177,7 +176,6 @@ public class Helpers {
      * @return the ID of created triangle
      */
     public static String createTriangle(double firstSide, double secondSide, double thirdSide) {
-
         Assert.assertTrue(getAllTriangles().size() < 10,
                 "The service allows only 10 triangles and all 10 are already present. " +
                         "Please delete some triangle to add a new one.");

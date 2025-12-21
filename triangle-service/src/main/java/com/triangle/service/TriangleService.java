@@ -16,11 +16,11 @@ public class TriangleService {
     private static final int MAX_TRIANGLES = 10;
     
     // BUG: The service allows 11 triangles instead of 10 as per tests
-    public boolean canAddTriangle() {
+    public final boolean canAddTriangle() {
         return triangles.size() < MAX_TRIANGLES + 1; // This is the bug - should be < MAX_TRIANGLES
     }
     
-    public Triangle createTriangle(TriangleRequest request) {
+    public final Triangle createTriangle(TriangleRequest request) {
         if (!canAddTriangle()) {
             throw new RuntimeException("Maximum number of triangles reached");
         }
@@ -35,30 +35,31 @@ public class TriangleService {
         return triangle;
     }
     
-    public List<Triangle> getAllTriangles() {
+    public final List<Triangle> getAllTriangles() {
         return new ArrayList<>(triangles.values());
     }
     
-    public Triangle getTriangle(String id) {
+    public final Triangle getTriangle(String id) {
         Triangle triangle = triangles.get(id);
+
         if (triangle == null) {
-            throw new RuntimeException("Triangle not found");
+            throw new RuntimeException("Triangle with id " + id + " not found");
         }
         return triangle;
     }
     
-    public void deleteTriangle(String id) {
+    public final void deleteTriangle(String id) {
         // BUG: The service accepts any ID and returns 200, should validate existence
         triangles.remove(id);
         // Should throw exception if triangle doesn't exist, but doesn't per tests
     }
     
-    public double getTriangleArea(String id) {
+    public final double getTriangleArea(String id) {
         Triangle triangle = getTriangle(id);
         return triangle.getArea();
     }
     
-    public double getTrianglePerimeter(String id) {
+    public final double getTrianglePerimeter(String id) {
         Triangle triangle = getTriangle(id);
         return triangle.getPerimeter();
     }
@@ -118,7 +119,8 @@ public class TriangleService {
         return UUID.randomUUID().toString();
     }
     
-    public boolean isValidToken(String token) {
+    public final boolean isValidToken(String token) {
         return VALID_TOKEN.equals(token);
     }
+
 } 

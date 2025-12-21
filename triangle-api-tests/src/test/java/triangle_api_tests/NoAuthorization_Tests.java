@@ -21,7 +21,7 @@ public class NoAuthorization_Tests {
     public void addTriangle_code401_Test() {
         // let's set a specification with invalid personal token
         RequestSpecification spec = new RequestSpecBuilder()
-                .addHeader("X-User", "invalid_personal_token_value")
+                .addHeader("X-User", INVALID_TOKEN)
                 .setBaseUri("http://localhost:8080")
                 .setBasePath("/triangle/")
                 .build();
@@ -54,8 +54,8 @@ public class NoAuthorization_Tests {
     public void getTriangle_code401_Test() {
         // let's set a specification with invalid personal token
         RequestSpecification spec = new RequestSpecBuilder()
-                .addHeader("X-User", "invalid_personal_token_value")
-                .setBaseUri("https://qa-quiz.natera.com/")
+                .addHeader("X-User", INVALID_TOKEN)
+                .setBaseUri("http://localhost:8080")
                 .setBasePath("/triangle/")
                 .build();
 
@@ -95,7 +95,7 @@ public class NoAuthorization_Tests {
     public void deleteTriangle_code401_Test() {
         // let's set a specification with invalid personal token
         RequestSpecification spec = new RequestSpecBuilder()
-                .addHeader("X-User", "invalid_personal_token_value")
+                .addHeader("X-User", INVALID_TOKEN)
                 .setBaseUri("http://localhost:8080/")
                 .setBasePath("/triangle/")
                 .build();
@@ -136,7 +136,7 @@ public class NoAuthorization_Tests {
     public void getTriangleAll_code401_Test() {
         // let's set a specification with invalid personal token
         RequestSpecification spec = new RequestSpecBuilder()
-                .addHeader("X-User", "invalid_personal_token_value")
+                .addHeader("X-User", INVALID_TOKEN)
                 .setBaseUri("http://localhost:8080")
                 .setBasePath("/triangle/")
                 .build();
@@ -165,7 +165,7 @@ public class NoAuthorization_Tests {
     public void getTrianglePerimeter_code401_Test() {
         // let's set a specification with invalid personal token
         RequestSpecification spec = new RequestSpecBuilder()
-                .addHeader("X-User", "invalid_personal_token_value")
+                .addHeader("X-User", INVALID_TOKEN)
                 .setBaseUri("http://localhost:8080")
                 .setBasePath("/triangle/")
                 .build();
@@ -206,7 +206,7 @@ public class NoAuthorization_Tests {
     public void getTriangleArea_code401_Test() {
         // let's set a specification with invalid personal token
         RequestSpecification spec = new RequestSpecBuilder()
-                .addHeader("X-User", "invalid_personal_token_value")
+                .addHeader("X-User", INVALID_TOKEN)
                 .setBaseUri("http://localhost:8080")
                 .setBasePath("/triangle/")
                 .build();

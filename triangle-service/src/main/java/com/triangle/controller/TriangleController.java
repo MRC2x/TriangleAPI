@@ -54,7 +54,8 @@ public class TriangleController {
         
         // Check authentication
         String token = httpRequest.getHeader("X-User");
-        if (token == null || !triangleService.isValidToken(token)) {
+
+        if (!triangleService.isValidToken(token)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", "Invalid or missing token"));
         }
@@ -109,7 +110,8 @@ public class TriangleController {
     public ResponseEntity<?> getAllTriangles(HttpServletRequest httpRequest) {
         // Check authentication
         String token = httpRequest.getHeader("X-User");
-        if (token == null || !triangleService.isValidToken(token)) {
+
+        if (!triangleService.isValidToken(token)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", "Invalid or missing token"));
         }
@@ -133,11 +135,12 @@ public class TriangleController {
     })
     public ResponseEntity<?> getTriangle(
         @Parameter(description = "Triangle ID", example = "uuid-string")
-        @PathVariable String id, 
+        @PathVariable("id") String id,
         HttpServletRequest httpRequest) {
         // Check authentication
         String token = httpRequest.getHeader("X-User");
-        if (token == null || !triangleService.isValidToken(token)) {
+
+        if (!triangleService.isValidToken(token)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", "Invalid or missing token"));
         }
@@ -163,11 +166,12 @@ public class TriangleController {
     })
     public ResponseEntity<?> deleteTriangle(
         @Parameter(description = "Triangle ID", example = "uuid-string")
-        @PathVariable String id, 
+        @PathVariable("id") String id,
         HttpServletRequest httpRequest) {
         // Check authentication
         String token = httpRequest.getHeader("X-User");
-        if (token == null || !triangleService.isValidToken(token)) {
+
+        if (!triangleService.isValidToken(token)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", "Invalid or missing token"));
         }
@@ -192,11 +196,12 @@ public class TriangleController {
     })
     public ResponseEntity<?> getTriangleArea(
         @Parameter(description = "Triangle ID", example = "uuid-string")
-        @PathVariable String id, 
+        @PathVariable("id") String id,
         HttpServletRequest httpRequest) {
         // Check authentication
         String token = httpRequest.getHeader("X-User");
-        if (token == null || !triangleService.isValidToken(token)) {
+
+        if (!triangleService.isValidToken(token)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", "Invalid or missing token"));
         }
@@ -225,11 +230,12 @@ public class TriangleController {
     })
     public ResponseEntity<?> getTrianglePerimeter(
         @Parameter(description = "Triangle ID", example = "uuid-string")
-        @PathVariable String id, 
+        @PathVariable("id") String id,
         HttpServletRequest httpRequest) {
         // Check authentication
         String token = httpRequest.getHeader("X-User");
-        if (token == null || !triangleService.isValidToken(token)) {
+
+        if (!triangleService.isValidToken(token)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Unauthorized", "Invalid or missing token"));
         }

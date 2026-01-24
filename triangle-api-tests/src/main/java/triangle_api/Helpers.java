@@ -253,6 +253,59 @@ public class Helpers {
         throw new IllegalArgumentException();
     }
 
+    /**
+     * This method returns a Triangle object for the specified ID.
+     * @param id - triangle ID
+     * @return Triangle object with all fields populated
+     */
+    public static Triangle getTriangleObj(String id) {
+        RequestSpecification helpersSpec = new RequestSpecBuilder()
+                .addHeader("X-User", VALID_TOKEN)
+                .setBaseUri(baseURI)
+                .setBasePath("/triangle/")
+                .build();
+
+        Response response =
+                given()
+                        .log()
+                        .ifValidationFails(LogDetail.ALL).spec(helpersSpec)
+                        .contentType(ContentType.JSON)
+                        .pathParam("triangleID", id)
+                .when()
+                        .get("/{triangleID}")
+                .then()
+                        .log()
+                        .ifValidationFails(LogDetail.ALL)
+                .assertThat()
+                        .statusCode(200)
+                        .contentType(ContentType.JSON)
+                        .extract()
+                        .response();
+
+        Reporter.log("The following triangle was found with this ID: " + response.asString(), true);
+
+        return new Triangle(
+                response.path("id"),
+                response.path("firstSide"),
+                response.path("secondSide"),
+                response.path("thirdSide"),
+                response.path("perimeter") != null ? response.path("perimeter") : 0.0,
+                response.path("area") != null ? response.path("area") : 0.0
+        );
+    }
+
+    /**
+     * This method creates a new triangle and returns a Triangle object with all fields populated.
+     * @param firstSide - a first side of the triangle
+     * @param secondSide - a second side of the triangle
+     * @param thirdSide - a third side of the triangle
+     * @return Triangle object
+     */
+    public static Triangle createTriangleObj(double firstSide, double secondSide, double thirdSide) {
+        String id = createTriangle(firstSide, secondSide, thirdSide);
+        return getTriangleObj(id);
+    }
+
     /** This enum defines values for the strategy argument of the genSides method*/
     public enum Strategy {
         VALID_VALUES,
@@ -369,6 +422,32 @@ public class Helpers {
             default -> throw new IllegalStateException("Unexpected strategy value: " + strategy);
         }
         return new double[]{firstSide, secondSide, thirdSide};
+    }
+
+    /** This method checks the number of existed triangles and deletes all of them if their number
+     *  is equal to or greater than the specified maxAllowedTriangles value.
+     *
+     * @param maxAllowedTriangles - maximum allowed number of triangles
+     */
+    public static void cleanUpTringlesIfNeeded(int maxAllowedTriangles) {
+        List<String> existedTriangles = getAllTriangles();
+
+        if (existedTriangles.size() >= 10) {
+            deleteAllTriangles(existedTriangles);
+        }
+    }
+
+    /** This method checks the number of existed triangles and deletes one of them if their number
+     *  is equal to or greater than the specified limit value.
+     *
+     * @param limit - maximum allowed number of triangles
+     */
+    public static void deleteOneTringleIfAboveLimit(int limit) {
+        List<String> existedTriangles = getAllTriangles();
+
+        if (existedTriangles.size() >= 10) {
+            deleteOneTriangle(existedTriangles.get(0));
+        }
     }
 
 }

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
+@SuppressWarnings({"HardcodedFileSeparator", "MethodWithMultipleReturnPoints", "OverlyComplexMethod"})
 @RestController
 @RequestMapping("/triangle")
 @Tag(name = "Triangle API", description = "Operations for managing triangles")
@@ -27,7 +28,8 @@ public class TriangleController {
     
     @Autowired
     private TriangleService triangleService;
-    
+
+
     @PostMapping("/")
     @Operation(
         summary = "Create a new triangle",
@@ -43,14 +45,14 @@ public class TriangleController {
         @ApiResponse(responseCode = "422", description = "Unprocessable Entity - Invalid triangle data",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    public ResponseEntity<?> createTriangle(
-        @Parameter(description = "Triangle request with sides and separator", 
-                  content = @Content(examples = {
-                      @ExampleObject(name = "Valid Triangle", value = "{\"separator\": \";\", \"input\": \"3;4;5\"}"),
-                      @ExampleObject(name = "Without Separator", value = "{\"input\": \"3;4;5\"}")
-                  }))
-        @RequestBody(required = false) TriangleRequest request,
-        HttpServletRequest httpRequest) {
+    public final ResponseEntity<?> createTriangle(
+            @Parameter(description = "Triangle request with sides and separator",
+                    content = @Content(examples = {
+                            @ExampleObject(name = "Valid Triangle", value = "{\"separator\": \";\", \"input\": \"3;4;5\"}"),
+                            @ExampleObject(name = "Without Separator", value = "{\"input\": \"3;4;5\"}")
+                    }))
+            @RequestBody(required = false) TriangleRequest request,
+            HttpServletRequest httpRequest) {
         
         // Check authentication
         String token = httpRequest.getHeader("X-User");
@@ -107,7 +109,7 @@ public class TriangleController {
         @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    public ResponseEntity<?> getAllTriangles(HttpServletRequest httpRequest) {
+    public final ResponseEntity<?> getAllTriangles(HttpServletRequest httpRequest) {
         // Check authentication
         String token = httpRequest.getHeader("X-User");
 
@@ -133,10 +135,10 @@ public class TriangleController {
         @ApiResponse(responseCode = "404", description = "Triangle not found",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    public ResponseEntity<?> getTriangle(
-        @Parameter(description = "Triangle ID", example = "uuid-string")
-        @PathVariable("id") String id,
-        HttpServletRequest httpRequest) {
+    public final ResponseEntity<?> getTriangle(
+            @Parameter(description = "Triangle ID", example = "uuid-string")
+            @PathVariable("id") String id,
+            HttpServletRequest httpRequest) {
         // Check authentication
         String token = httpRequest.getHeader("X-User");
 
@@ -164,10 +166,10 @@ public class TriangleController {
         @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    public ResponseEntity<?> deleteTriangle(
-        @Parameter(description = "Triangle ID", example = "uuid-string")
-        @PathVariable("id") String id,
-        HttpServletRequest httpRequest) {
+    public final ResponseEntity<?> deleteTriangle(
+            @Parameter(description = "Triangle ID", example = "uuid-string")
+            @PathVariable("id") String id,
+            HttpServletRequest httpRequest) {
         // Check authentication
         String token = httpRequest.getHeader("X-User");
 
@@ -194,10 +196,10 @@ public class TriangleController {
         @ApiResponse(responseCode = "404", description = "Triangle not found",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    public ResponseEntity<?> getTriangleArea(
-        @Parameter(description = "Triangle ID", example = "uuid-string")
-        @PathVariable("id") String id,
-        HttpServletRequest httpRequest) {
+    public final ResponseEntity<?> getTriangleArea(
+            @Parameter(description = "Triangle ID", example = "uuid-string")
+            @PathVariable("id") String id,
+            HttpServletRequest httpRequest) {
         // Check authentication
         String token = httpRequest.getHeader("X-User");
 
@@ -228,10 +230,10 @@ public class TriangleController {
         @ApiResponse(responseCode = "404", description = "Triangle not found",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    public ResponseEntity<?> getTrianglePerimeter(
-        @Parameter(description = "Triangle ID", example = "uuid-string")
-        @PathVariable("id") String id,
-        HttpServletRequest httpRequest) {
+    public final ResponseEntity<?> getTrianglePerimeter(
+            @Parameter(description = "Triangle ID", example = "uuid-string")
+            @PathVariable("id") String id,
+            HttpServletRequest httpRequest) {
         // Check authentication
         String token = httpRequest.getHeader("X-User");
 
@@ -253,7 +255,7 @@ public class TriangleController {
     @Operation(hidden = true)
     @Hidden
     @RequestMapping(value = "/", method = {RequestMethod.GET, RequestMethod.PUT, RequestMethod.DELETE})
-    public ResponseEntity<?> unsupportedMethods() {
+    public final ResponseEntity<?> unsupportedMethods() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(new ErrorResponse("Method Not Allowed", "Request method not supported"));
     }
@@ -261,7 +263,7 @@ public class TriangleController {
     @Operation(hidden = true)
     @Hidden
     @RequestMapping(value = "/all", method = {RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
-    public ResponseEntity<?> unsupportedMethodsForAll() {
+    public final ResponseEntity<?> unsupportedMethodsForAll() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(new ErrorResponse("Method Not Allowed", "Request method not supported"));
     }
@@ -269,7 +271,7 @@ public class TriangleController {
     @Operation(hidden = true)
     @Hidden
     @RequestMapping(value = "/{id}", method = {RequestMethod.POST, RequestMethod.PUT})
-    public ResponseEntity<?> unsupportedMethodsForId() {
+    public final ResponseEntity<?> unsupportedMethodsForId() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(new ErrorResponse("Method Not Allowed", "Request method not supported"));
     }
@@ -277,7 +279,7 @@ public class TriangleController {
     @Operation(hidden = true)
     @Hidden
     @RequestMapping(value = "/{id}/area", method = {RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
-    public ResponseEntity<?> unsupportedMethodsForArea() {
+    public final ResponseEntity<?> unsupportedMethodsForArea() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(new ErrorResponse("Method Not Allowed", "Request method not supported"));
     }
@@ -285,7 +287,7 @@ public class TriangleController {
     @Operation(hidden = true)
     @Hidden
     @RequestMapping(value = "/{id}/perimeter", method = {RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
-    public ResponseEntity<?> unsupportedMethodsForPerimeter() {
+    public final ResponseEntity<?> unsupportedMethodsForPerimeter() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(new ErrorResponse("Method Not Allowed", "Request method not supported"));
     }

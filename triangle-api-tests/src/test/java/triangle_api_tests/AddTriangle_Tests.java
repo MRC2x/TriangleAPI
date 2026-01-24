@@ -9,16 +9,19 @@ import org.testng.Reporter;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import triangle_api.SetUp;
+import triangle_api.Triangle;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.equalTo;
 import static triangle_api.Helpers.*;
 import static triangle_api.Helpers.Strategy.*;
+import static triangle_api.Utilities.getNewTrianglePayloadMap;
 
 public class AddTriangle_Tests extends SetUp {
 
@@ -88,27 +91,34 @@ public class AddTriangle_Tests extends SetUp {
         return data;
     }
 
+    @DataProvider(name = "getTriangleObjects")
+    public static Object[][] getTriangleObjects(Method test) {
+        Object[][] data = getSides(test);
+        Object[][] triangles = new Object[data.length][1];
+
+        for (int i = 0; i < data.length; i++) {
+            double a = (double) data[i][0];
+            double b = (double) data[i][1];
+            double c = (double) data[i][2];
+            triangles[i][0] = new Triangle(null, a, b, c, 0.0, 0.0);
+        }
+        return triangles;
+    }
+
 
     @Test(description = "Code 200 verification for an attempt to add a new triangle with valid sides",
-            dataProvider = "getSides")
+            dataProvider = "getTriangleObjects")
     @Description("This test tries to add a new triangle with sides values received from the 'validSides' data provider" +
             " and verify that the response has the Code 200, same sides values as were specified, and the id.")
-    public void addTriangle_validSides_Test(double firstSide, double secondSide, double thirdSide) {
-        // let's check if there's a room for a new triangles and if not, delete all existed triangles
-        List<String> existedTriangles = getAllTriangles();
-
-        if (existedTriangles.size() >= 10) {
-            deleteAllTriangles(existedTriangles);
-        }
-
-        String payload = "{\"separator\": \";\", \"input\": \""+firstSide+";"+secondSide+";"+thirdSide+"\"}";
+    public void addTriangle_validSides_Test(Triangle triangle) {
+        cleanUpTringlesIfNeeded(10);
 
         Response response =
                 given()
                         .log()
                         .ifValidationFails(LogDetail.ALL)
                         .contentType(ContentType.JSON)
-                        .body(payload)
+                        .body(getNewTrianglePayloadMap(triangle))
                 .when()
                        .post("/")
                 .then()
@@ -117,102 +127,81 @@ public class AddTriangle_Tests extends SetUp {
                 .assertThat()
                         .statusCode(200)
                         .contentType(ContentType.JSON)
-                        .body("firstSide", equalTo(firstSide),
-                                "secondSide", equalTo(secondSide),
-                                "thirdSide", equalTo(thirdSide) )
+                        .body("firstSide", equalTo(triangle.getSideA()),
+                                "secondSide", equalTo(triangle.getSideB()),
+                                "thirdSide", equalTo(triangle.getSideC()) )
                         .extract()
                         .response();
 
         String id = response.path("id");
 
-        Reporter.log("A new triangle with sides: "+firstSide+", "+secondSide+", and "+thirdSide+" " +
-                "was successfully added. Its ID is: "+id, true);
+        Reporter.log("A new triangle ID: " + id + " with sides: " + triangle.getSideA() + ", " + triangle.getSideB() + ", and " + triangle.getSideC() +
+                " was successfully added", true);
     }
 
 
-    @Issue("I assume the service shouldn't accept negative values as sides though " +
-            "it does take the value by module -> BUG/FEATURE")
     @Test(description = "Code 422 verification for an attempt to add a new triangle with negative values of the valid sides",
-            dataProvider = "getSides")
+            dataProvider = "getTriangleObjects")
     @Description("This test tries to add a new triangle with negative values of sides and verify that the response has " +
             "the Code 422.")
-    public void addTriangle_negativeSides_Test(double firstSide, double secondSide, double thirdSide) {
-        // let's check if there's a room for a new triangles and if not, delete all existed triangles
-        List<String> existedTriangles = getAllTriangles();
-
-        if (existedTriangles.size() >= 10) {
-            deleteAllTriangles(existedTriangles);
-        }
-
-        String payload = "{\"separator\": \";\", \"input\": \""+firstSide+";"+secondSide+";"+thirdSide+"\"}";
+    public void addTriangle_negativeSides_Test(Triangle triangle) {
+        cleanUpTringlesIfNeeded(10);
 
         given()
                 .log()
                 .ifValidationFails(LogDetail.ALL)
                 .contentType(ContentType.JSON)
-                .body(payload)
+                .body(getNewTrianglePayloadMap(triangle))
         .when()
                 .post("/")
         .then()
                 .log()
                 .ifValidationFails(LogDetail.ALL)
         .assertThat()
-                .statusCode(422);
+                .statusCode(422)
+                .body("error", equalTo("Unprocessable Entity"),
+                        "message", equalTo("Cannot process input") );
     }
 
 
-    @Issue("I assume the service should verify that a sum of any two specified sides is not equal to the third one, " +
-            "currently any value combinations are allowed. -> BUG")
     @Test(description = "Code 422 verification for an attempt to add a new triangle which sum of some two sides equals " +
             "to the third one",
-            dataProvider = "getSides")
+            dataProvider = "getTriangleObjects")
     @Description("This test tries to add a new triangle which sum of some two sides equals to the third one and verify " +
             "that the response has the Code 422.")
-    public void addTriangle_sumSides_Test(double firstSide, double secondSide, double thirdSide) {
-        // let's check if there's a room for a new triangles and if not, delete all existed triangles
-        List<String> existedTriangles = getAllTriangles();
-
-        if (existedTriangles.size() >= 10) {
-            deleteAllTriangles(existedTriangles);
-        }
-
-        String payload = "{\"separator\": \";\", \"input\": \""+firstSide+";"+secondSide+";"+thirdSide+"\"}";
+    public void addTriangle_sumSides_Test(Triangle triangle) {
+        cleanUpTringlesIfNeeded(10);
 
         given()
                 .log()
                 .ifValidationFails(LogDetail.ALL)
                 .contentType(ContentType.JSON)
-                .body(payload)
+                .body(getNewTrianglePayloadMap(triangle))
         .when()
                 .post("/")
         .then()
                 .log()
                 .ifValidationFails(LogDetail.ALL)
         .assertThat()
-                .statusCode(422);
+                .statusCode(422)
+                .body("error", equalTo("Unprocessable Entity"),
+                        "message", equalTo("Cannot process input") );
     }
 
 
     @Test(description = "Code 422 verification for an attempt to add a new triangle with the sides where the " +
             "sum of any two is less than the third one.",
-            dataProvider = "getSides")
+            dataProvider = "getTriangleObjects")
     @Description("This test tries to add a new triangle with the sides where the sum of any two is less than the " +
             "third one and verify that the response has the Code 422.")
-    public void addTriangle_invalidSides_Test(double firstSide, double secondSide, double thirdSide) {
-        // let's check if there's a room for a new triangles and if not, delete all existed triangles
-        List<String> existedTriangles = getAllTriangles();
-
-        if (existedTriangles.size() >= 10) {
-            deleteAllTriangles(existedTriangles);
-        }
-
-        String payload = "{\"separator\": \";\", \"input\": \""+firstSide+";"+secondSide+";"+thirdSide+"\"}";
+    public void addTriangle_invalidSides_Test(Triangle triangle) {
+        cleanUpTringlesIfNeeded(10);
 
         given()
                 .log()
                 .ifValidationFails(LogDetail.ALL)
                 .contentType(ContentType.JSON)
-                .body(payload)
+                .body(getNewTrianglePayloadMap(triangle))
         .when()
                 .post("/")
         .then()
@@ -227,24 +216,17 @@ public class AddTriangle_Tests extends SetUp {
 
     @Test(description = "Code 422 verification for an attempt to add a new triangle with the sides where one of them " +
             "or all of them are zero.",
-            dataProvider = "getSides")
+            dataProvider = "getTriangleObjects")
     @Description("This test tries to add a new triangle with the sides where one of them or all of them have a zero " +
             "value and verify that the response has the Code 422.")
-    public void addTriangle_SidesWithZero_Test(double firstSide, double secondSide, double thirdSide) {
-        // let's check if there's a room for a new triangles and if not, delete all existed triangles
-        List<String> existedTriangles = getAllTriangles();
-
-        if (existedTriangles.size() >= 10) {
-            deleteAllTriangles(existedTriangles);
-        }
-
-        String payload = "{\"separator\": \";\", \"input\": \""+firstSide+";"+secondSide+";"+thirdSide+"\"}";
+    public void addTriangle_SidesWithZero_Test(Triangle triangle) {
+        cleanUpTringlesIfNeeded(10);
 
         given()
                 .log()
                 .ifValidationFails(LogDetail.ALL)
                 .contentType(ContentType.JSON)
-                .body(payload)
+                .body(getNewTrianglePayloadMap(triangle))
         .when()
                 .post("/")
         .then()
@@ -258,25 +240,18 @@ public class AddTriangle_Tests extends SetUp {
 
 
     @Test(description = "Code 200 verification for an attempt to add a new triangle with equilateral sides",
-            dataProvider = "getSides")
+            dataProvider = "getTriangleObjects")
     @Description("This test tries to add a new triangle with equilateral sides and verify that the response " +
             "has the Code 200, same sides values as were specified, and the id.")
-    public void addTriangle_equilateralSides_Test(double firstSide, double secondSide, double thirdSide) {
-        // let's check if there's a room for a new triangles and if not, delete all existed triangles
-        List<String> existedTriangles = getAllTriangles();
-
-        if (existedTriangles.size() >= 10) {
-            deleteAllTriangles(existedTriangles);
-        }
-
-        String payload = "{\"separator\": \";\", \"input\": \""+firstSide+";"+secondSide+";"+thirdSide+"\"}";
+    public void addTriangle_equilateralSides_Test(Triangle triangle) {
+        cleanUpTringlesIfNeeded(10);
 
         Response response =
                 given()
                         .log()
                         .ifValidationFails(LogDetail.ALL)
                         .contentType(ContentType.JSON)
-                        .body(payload)
+                        .body(getNewTrianglePayloadMap(triangle))
                 .when()
                         .post("/")
                 .then()
@@ -285,39 +260,32 @@ public class AddTriangle_Tests extends SetUp {
                 .assertThat()
                         .statusCode(200)
                         .contentType(ContentType.JSON)
-                        .body("firstSide", equalTo(firstSide),
-                                "secondSide", equalTo(secondSide),
-                                "thirdSide", equalTo(thirdSide) )
+                        .body("firstSide", equalTo(triangle.getSideA()),
+                                "secondSide", equalTo(triangle.getSideB()),
+                                "thirdSide", equalTo(triangle.getSideC()) )
                         .extract()
                         .response();
 
         String id = response.path("id");
 
-        Reporter.log("A new equilateral triangle with sides: "+firstSide+", "+secondSide+", and "+thirdSide+" " +
-                "was successfully added. Its ID is: "+id, true);
+        Reporter.log("A new equilateral triangle ID: " + id + " with sides: " + triangle.getSideA() + ", " + triangle.getSideB() + ", and " + triangle.getSideC() +
+                " was successfully added.", true);
     }
 
 
     @Test(description = "Code 200 verification for an attempt to add a new triangle with isosceles sides",
-            dataProvider = "getSides")
+            dataProvider = "getTriangleObjects")
     @Description("This test tries to add a new triangle with isosceles sides and verify that the response " +
             "has the Code 200, same sides values as were specified, and the id.")
-    public void addTriangle_isoscelesSides_Test(double firstSide, double secondSide, double thirdSide) {
-        // let's check if there's a room for a new triangles and if not, delete all existed triangles
-        List<String> existedTriangles = getAllTriangles();
-
-        if (existedTriangles.size() >= 10) {
-            deleteAllTriangles(existedTriangles);
-        }
-
-        String payload = "{\"separator\": \";\", \"input\": \""+firstSide+";"+secondSide+";"+thirdSide+"\"}";
+    public void addTriangle_isoscelesSides_Test(Triangle triangle) {
+        cleanUpTringlesIfNeeded(10);
 
         Response response =
                 given()
                         .log()
                         .ifValidationFails(LogDetail.ALL)
                         .contentType(ContentType.JSON)
-                        .body(payload)
+                        .body(getNewTrianglePayloadMap(triangle))
                 .when()
                         .post("/")
                 .then()
@@ -326,16 +294,16 @@ public class AddTriangle_Tests extends SetUp {
                 .assertThat()
                         .statusCode(200)
                         .contentType(ContentType.JSON)
-                        .body("firstSide", equalTo(firstSide),
-                                "secondSide", equalTo(secondSide),
-                                "thirdSide", equalTo(thirdSide) )
+                        .body("firstSide", equalTo(triangle.getSideA()),
+                                "secondSide", equalTo(triangle.getSideB()),
+                                "thirdSide", equalTo(triangle.getSideC()) )
                         .extract()
                         .response();
 
         String id = response.path("id");
 
-        Reporter.log("A new isosceles triangle with sides: "+firstSide+", "+secondSide+", and "+thirdSide+" " +
-                "was successfully added. Its ID is: "+id, true);
+        Reporter.log("A new isosceles triangle ID: " + id + " with sides: " + triangle.getSideA() + ", " + triangle.getSideB() + ", and " + triangle.getSideC() +
+                " was successfully added.", true);
     }
 
 
@@ -343,12 +311,8 @@ public class AddTriangle_Tests extends SetUp {
     @Description("This test tries to add a new triangle without 'separator' key in the payload and verify that the " +
             "response has the Code 200, same sides values as were specified, and the id.")
     public void addTriangle_Payload_noSeparator_Test() {
-        // let's check if there's a room for one new triangles and if not, delete one existed triangle
-        List<String> existedTriangles = getAllTriangles();
+        deleteOneTringleIfAboveLimit(0);
 
-        if (existedTriangles.size() >= 10) {
-            deleteOneTriangle(existedTriangles.get(0));
-        }
         // let's get a valid sides for a triangle
         double[] sides = genSides(VALID_VALUES, "#", 10);
         // specify the payload without 'separator' part
@@ -449,12 +413,8 @@ public class AddTriangle_Tests extends SetUp {
     @Description("This test tries to add a new triangle with different valid separator values in the payload and " +
             "verify that the response has the Code 200, same sides values as were specified, and the id.")
     public void addTriangle_Payload_validSeparatorValues_Test(String separator) {
-        // let's check if there's a room for a new triangles and if not, delete all existed triangle
-        List<String> existedTriangles = getAllTriangles();
+        cleanUpTringlesIfNeeded(10);
 
-        if (existedTriangles.size() >= 10) {
-            deleteAllTriangles(existedTriangles);
-        }
         // let's get a valid sides for a triangle
         double[] sides = genSides(VALID_VALUES, "#", 10);
 
@@ -624,12 +584,8 @@ public class AddTriangle_Tests extends SetUp {
     @Description("This test verifies that the response has the Code 405 for the /triangle if an incorrect HTTP method " +
             "was used for the request.")
     public void addTriangle_wrongMethod_Test() {
-        // let's check if there's a room for a new triangles and if not, delete all existed triangles
-        List<String> existedTriangles = getAllTriangles();
+        cleanUpTringlesIfNeeded(10);
 
-        if (existedTriangles.size() >= 10) {
-            deleteAllTriangles(existedTriangles);
-        }
         // let's get a valid sides for a triangle
         double[] sides = genSides(VALID_VALUES, "#", 10);
         // specify the payload without 'separator' part

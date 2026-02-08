@@ -12,6 +12,7 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.testng.Assert;
 import org.testng.Reporter;
+import triangle_api.Triangle;
 
 import java.text.DecimalFormat;
 import java.util.List;
@@ -449,5 +450,33 @@ public class Helpers {
             deleteOneTriangle(existedTriangles.get(0));
         }
     }
+
+    /** This method generates sides according to the specified strategy and creates a Triangle object with all fields
+     *  populated based on the generated sides.
+     *
+     * @param strategy - one of the values described in the Strategy enum;
+     * @param pattern - # - no digits after comma (will be shown as number.0 since it's double),
+     *               #.# - one digit after comma,
+     *               #.## two digits after comma - and so on;
+     * @param bound - the upper bound for the generated values,
+     *             i.e. 10 - values will be up to 10; 100 - values will be up to100, and so on.
+     * @return Triangle object with all fields populated based on the generated sides.
+     */
+    public static Triangle getNewTriangle(Strategy strategy, String pattern, int bound) {
+        double[] sides = genSides(strategy, pattern, bound);
+
+        double perimeter = sides[0] + sides[1] + sides[2];
+        double halfPerimeter = perimeter / 2;
+        double area = Math.sqrt(halfPerimeter
+                * (halfPerimeter - sides[0])
+                * (halfPerimeter - sides[1])
+                * (halfPerimeter - sides[2]));
+
+        return new Triangle(null,
+                sides[0], sides[1], sides[2],
+                perimeter,
+                area);
+    }
+
 
 }

@@ -12,7 +12,6 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.testng.Assert;
 import org.testng.Reporter;
-import triangle_api.Triangle;
 
 import java.text.DecimalFormat;
 import java.util.List;
@@ -21,8 +20,9 @@ import java.util.concurrent.ThreadLocalRandom;
 import static io.restassured.RestAssured.baseURI;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static triangle_api.Utilities.getNewTrianglePayloadMap;
 
-public class Helpers {
+public class Helpers extends SetUp {
     public static String VALID_TOKEN = "9ea8c6a6-73f5-4ea1-8ec8-f8a3b00a2564";
     public static String INVALID_TOKEN = "invalid_personal_token_value";
 
@@ -30,33 +30,26 @@ public class Helpers {
      *
      * @return - list of IDs or empty list
      */
-    public static List<String> getAllTriangles() {
-        RequestSpecification helpersSpec = new RequestSpecBuilder()
-                .addHeader("X-User", VALID_TOKEN)
-                .setBaseUri(baseURI)
-                .setBasePath("/triangle/")
-                .build();
-
+    public static List<Triangle> getAllTriangles() {
         Response response =
                 given()
                         .log()
-                        .ifValidationFails(LogDetail.ALL).spec(helpersSpec)
+                        .ifValidationFails(LogDetail.ALL)
                         .contentType(ContentType.JSON)
                 .when()
                         .get("/all")
                 .then()
                         .log()
                         .ifValidationFails(LogDetail.ALL)
-                .assertThat()
-                        .statusCode(200)
-                        .contentType(ContentType.JSON)
                         .extract()
                         .response();
 
-        List<String> listOfIDs = response.jsonPath().getList("id");
-        Reporter.log("The following triangle IDs were found: " + listOfIDs, true);
-
-        return listOfIDs;
+        if (response.getStatusCode() == 200) {
+            return response.jsonPath().getList("", Triangle.class);                        
+        } else {
+            Reporter.log("Failed to get the list of triangles, status code: " + response.getStatusCode(), true);
+            throw new IllegalStateException("Failed to get the list of triangles, status code: " + response.getStatusCode());
+        }
     }
 
 
@@ -64,18 +57,11 @@ public class Helpers {
      *
      * @return - array of double with three sides.
      */
-    public static double[] getTriangle(String id) {
-        RequestSpecification helpersSpec = new RequestSpecBuilder()
-                .addHeader("X-User", VALID_TOKEN)
-                .setBaseUri(baseURI)
-                .setBasePath("/triangle/")
-                .build();
-
+    public static Triangle getTriangle(String id) {
         Response response =
-
                 given()
                         .log()
-                        .ifValidationFails(LogDetail.ALL).spec(helpersSpec)
+                        .ifValidationFails(LogDetail.ALL)
                         .contentType(ContentType.JSON)
                         .pathParam("triangleID", id)
                 .when()
@@ -83,17 +69,31 @@ public class Helpers {
                 .then()
                         .log()
                         .ifValidationFails(LogDetail.ALL)
-                .assertThat()
-                        .statusCode(200)
-                        .contentType(ContentType.JSON)
                         .extract()
                         .response();
 
-        Reporter.log("The following triangle was found with this ID: " + response.asString(), true);
+        if (response.getStatusCode() == 200) {
+            Reporter.log("The triangle with ID: " + id + " was found", true);
 
-        return new double[]{response.path("firstSide"),
-                response.path("secondSide"),
-                response.path("thirdSide")};
+            return response.jsonPath().getObject("", Triangle.class);
+        } else if (response.getStatusCode() == 404) {
+            Reporter.log("The triangle with ID: " + id + " was not found", true);
+            throw new IllegalStateException("The triangle with ID: " + id + " was not found.");
+        } else {
+            Reporter.log("Failed to get the triangle with ID: " + id + ", status code: " + response.getStatusCode(), true);
+            throw new IllegalStateException("Failed to get the triangle with ID: " + id + ", status code: " + response.getStatusCode());
+        }
+    }
+
+
+    public static List<String> getAllTrianglesIDs() {
+        return getAllTriangles().stream()
+                .map(Triangle::getId)
+                .toList();
+    }
+    
+    public static boolean isTrianglePresent(String id) {
+        return getAllTrianglesIDs().contains(id);
     }
 
 
@@ -102,70 +102,42 @@ public class Helpers {
      * @param listOfIDs - a list with triangles IDs
      */
     public static void deleteAllTriangles(List<String> listOfIDs ) {
-
-        RequestSpecification helpersSpec = new RequestSpecBuilder()
-                .addHeader("X-User", VALID_TOKEN)
-                .setBaseUri(baseURI)
-                .setBasePath("/triangle/")
-                .build();
-
         if (!listOfIDs.isEmpty()) {
             for (String id : listOfIDs) {
+                Response response = deleteTriangle(id);
 
-                given()
-                        .log()
-                        .ifValidationFails(LogDetail.ALL)
-                        .spec(helpersSpec)
-                        .contentType(ContentType.JSON)
-                        .pathParam("triangleID", id)
-                .when()
-                        .delete("/{triangleID}")
-                .then()
-                        .log()
-                        .ifValidationFails(LogDetail.ALL)
-                .assertThat()
-                        .statusCode(200);
-
-                Assert.assertFalse(getAllTriangles().contains(id));
-
-                Reporter.log("The triangle with ID "+id+" was deleted.", true);
+                if (response.getStatusCode() == 200) {
+                     Reporter.log("The triangle with ID " + id + " was deleted.", true);
+                } else {
+                    Reporter.log("Failed to delete the triangle with ID: " + id + ", status code: " + response.getStatusCode() + "body: " + response.getBody(), true);
+                    throw new IllegalStateException("Failed to delete the triangle with ID: " + id + ", status code: " + response.getStatusCode());
+                }
             }
         } else {
             Reporter.log("The specified list of IDs is empty, please provide a list with valid IDs", true);
-            throw new IllegalArgumentException();
         }
     }
 
 
-    /** This method deletes the triangle of the specified ID.
+    /** This method deletes the triangle of the specified ID and returns the status code of the response.
      *
      * @param id - ID of the triangles which should be deleted
+     * @return status code of the response
      */
-    public static void deleteOneTriangle(String id) {
-
-        RequestSpecification helpersSpec = new RequestSpecBuilder()
-                .addHeader("X-User", VALID_TOKEN)
-                .setBaseUri(baseURI)
-                .setBasePath("/triangle/")
-                .build();
-
-        given()
-                .log()
-                .ifValidationFails(LogDetail.ALL)
-                .spec(helpersSpec)
-                .contentType(ContentType.JSON)
-                .pathParam("triangleID", id)
-        .when()
-                .delete("/{triangleID}")
-        .then()
-                .log()
-                .ifValidationFails(LogDetail.ALL)
-        .assertThat()
-                .statusCode(200);
-
-        Assert.assertFalse(getAllTriangles().contains(id));
-
-        Reporter.log("The triangle with ID "+id+" was deleted.", true);
+    public static Response deleteTriangle(String id) {
+       return
+            given()
+                    .log()
+                    .ifValidationFails(LogDetail.ALL)
+                    .contentType(ContentType.JSON)
+                    .pathParam("triangleID", id)
+            .when()
+                    .delete("/{triangleID}")
+            .then()
+                    .log()
+                    .ifValidationFails(LogDetail.ALL)
+                    .extract()
+                    .response();
     }
 
     /** This method creates a new triangle if specified sides are valid for a real triangle,
@@ -177,9 +149,8 @@ public class Helpers {
      * @return the ID of created triangle
      */
     public static String createTriangle(double firstSide, double secondSide, double thirdSide) {
-        Assert.assertTrue(getAllTriangles().size() < 10,
-                "The service allows only 10 triangles and all 10 are already present. " +
-                        "Please delete some triangle to add a new one.");
+        if (getAllTriangles().size() < 10)
+            throw new IllegalStateException("The service allows only 10 triangles and all 10 are already present. Please delete some triangle to add a new one.");
 
         RequestSpecification helpersSpec = new RequestSpecBuilder()
                 .addHeader("X-User", "9ea8c6a6-73f5-4ea1-8ec8-f8a3b00a2564")
@@ -254,59 +225,23 @@ public class Helpers {
         throw new IllegalArgumentException();
     }
 
-    /**
-     * This method returns a Triangle object for the specified ID.
-     * @param id - triangle ID
-     * @return Triangle object with all fields populated
+    /** This method creates a new triangle if specified sides are valid for a real triangle,
+     *  and returns the Response object for further assertions in tests.
+     *
+     * @param triangle - Triangle object with side values
+     * @return the Response object from the API call
      */
-    public static Triangle getTriangleObj(String id) {
-        RequestSpecification helpersSpec = new RequestSpecBuilder()
-                .addHeader("X-User", VALID_TOKEN)
-                .setBaseUri(baseURI)
-                .setBasePath("/triangle/")
-                .build();
-
-        Response response =
-                given()
-                        .log()
-                        .ifValidationFails(LogDetail.ALL).spec(helpersSpec)
-                        .contentType(ContentType.JSON)
-                        .pathParam("triangleID", id)
-                .when()
-                        .get("/{triangleID}")
-                .then()
-                        .log()
-                        .ifValidationFails(LogDetail.ALL)
-                .assertThat()
-                        .statusCode(200)
-                        .contentType(ContentType.JSON)
-                        .extract()
-                        .response();
-
-        Reporter.log("The following triangle was found with this ID: " + response.asString(), true);
-
-        return new Triangle(
-                response.path("id"),
-                response.path("firstSide"),
-                response.path("secondSide"),
-                response.path("thirdSide"),
-                response.path("perimeter") != null ? response.path("perimeter") : 0.0,
-                response.path("area") != null ? response.path("area") : 0.0
-        );
+    public static Response createTriangle(Triangle triangle) {
+        return 
+            given()
+                .log()
+                .ifValidationFails(LogDetail.ALL)
+                .contentType(ContentType.JSON)
+                .body(getNewTrianglePayloadMap(triangle, ";"))
+            .when()
+                .post("/");
     }
-
-    /**
-     * This method creates a new triangle and returns a Triangle object with all fields populated.
-     * @param firstSide - a first side of the triangle
-     * @param secondSide - a second side of the triangle
-     * @param thirdSide - a third side of the triangle
-     * @return Triangle object
-     */
-    public static Triangle createTriangleObj(double firstSide, double secondSide, double thirdSide) {
-        String id = createTriangle(firstSide, secondSide, thirdSide);
-        return getTriangleObj(id);
-    }
-
+    
     /** This enum defines values for the strategy argument of the genSides method*/
     public enum Strategy {
         VALID_VALUES,
@@ -431,23 +366,23 @@ public class Helpers {
      * @param maxAllowedTriangles - maximum allowed number of triangles
      */
     public static void cleanUpTringlesIfNeeded(int maxAllowedTriangles) {
-        List<String> existedTriangles = getAllTriangles();
+        List<Triangle> existedTriangles = getAllTriangles();
 
         if (existedTriangles.size() >= 10) {
-            deleteAllTriangles(existedTriangles);
+            deleteAllTriangles(getAllTrianglesIDs());
         }
     }
-
+    
     /** This method checks the number of existed triangles and deletes one of them if their number
      *  is equal to or greater than the specified limit value.
      *
      * @param limit - maximum allowed number of triangles
      */
     public static void deleteOneTringleIfAboveLimit(int limit) {
-        List<String> existedTriangles = getAllTriangles();
+        List<Triangle> existedTriangles = getAllTriangles();
 
-        if (existedTriangles.size() >= 10) {
-            deleteOneTriangle(existedTriangles.get(0));
+        if (existedTriangles.size() >= limit) {
+            deleteTriangle(existedTriangles.get(0).getId());
         }
     }
 

@@ -145,4 +145,19 @@ public class TestDataProviders {
         };
     }
 
+    /** This is Data Provider for the addTriangle_Payload_validSeparatorValues_Test */
+    @DataProvider(name = "getInvalidIDs")
+    public static Object[][] getInvalidIDs() {
+        return new Object[][] {
+                {"qwerty12-3456-7asd-f890-zxcvbn123456"},
+                {"qWeRty"},
+                {"1234567890"},
+                {"~!@#$%^&"},
+                {" "},
+                {"#"},
+                {"Qwerty_123~11$@@"},
+        };
+    }
+
+
 }
